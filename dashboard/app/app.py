@@ -18,7 +18,7 @@ dr = pd.read_csv('../../data/date_range.csv')
 lda_vis = 'lda.html'
 
 rating_hist = px.histogram(df, x="rating", nbins=5, title = 'Histogram of Ratings')
-rating_ot = px.line(dr, x=dr['dates'], y=dr['moving'])
+rating_ot = px.line(dr, x=dr['dates'], y=dr['moving'], title='Simple Moving Average Rating')
 rating_ot.update_xaxes(
     rangeslider_visible=True,
     rangeselector=dict(
