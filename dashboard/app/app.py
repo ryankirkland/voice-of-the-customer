@@ -15,7 +15,7 @@ import time
 
 df = pd.read_csv('../../data/cleaned_reviews.csv')
 dr = pd.read_csv('../../data/date_range.csv')
-lda_vis = 'lda.html'
+lda_vis = 'negative_rechargeble_bats_ldavis.html'
 
 rating_hist = px.histogram(df, x="rating", nbins=5, title = 'Histogram of Ratings')
 rating_ot = px.line(dr, x=dr['dates'], y=dr['moving'], title='Simple Moving Average Rating')
@@ -33,18 +33,30 @@ rating_ot.update_xaxes(
     )
 )
 
+sentiment = px.scatter(df, 
+                 x='Polarity', 
+                 y='Subjectivity', 
+                 color = 'Analysis',
+                 size='Subjectivity')
+
+#add a vertical line at x=0 for Netural Reviews
+sentiment.update_layout(title='Sentiment Analysis of Review Content',
+                  shapes=[dict(type= 'line',
+                               yref= 'paper', y0= 0, y1= 1, 
+                               xref= 'x', x0= 0, x1= 0)])
+
 # EXTERNAL RESOURCES
 external_stylesheets = [dbc.themes.YETI]
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
-app.layout = html.Div([
+app.layout = dbc.Container([
         dbc.Navbar(
         [
             html.A(
                 # Use row and col to control vertical alignment of logo / brand
                 dbc.Row(
-                    dbc.Col(dbc.NavbarBrand("Fraud Dashboard", className="ml-2")),
+                    dbc.Col(dbc.NavbarBrand("Product Sentiment Analysis Dashboard", className="ml-2")),
                     align="center",
                     no_gutters=True,
                 ),
@@ -55,18 +67,41 @@ app.layout = html.Div([
         color="dark",
         dark=True,
         ),
+        dbc.Jumbotron([
+            dbc.Container([
+                dbc.Row([
+                    dbc.Col([
+                        html.H1('Voice of the Customer', className='display-5'),
+                        html.P(
+                            'The following visualizations provide insight into customer '
+                            'sentiment of the rechargeable batteries Amazon '
+                            'subcategory.',
+                            className='lead'
+                        )
+                    ], width=5),
+                    dbc.Col([
+                        html.Img(src='assets/amz_box.png')
+                    ], width=5)
+                ])
+            ],
+            fluid=False
+            )
+        ],
+        fluid=True
+        ),
         dbc.Row([
             dbc.Col(
                 dcc.Graph(
                 id='rating-hist',
-                figure=rating_hist
-                ), style=dict(width='49%')
+                figure=rating_hist,
+                style=dict(width='100%')
+                ), width=5
             ),
             dbc.Col(
                 dcc.Graph(
-                id='rating-hist2',
-                figure=rating_hist
-                ), style=dict(width='49%')
+                id='sentiment',
+                figure=sentiment
+                ), width=7
             )
         ]),
         dbc.Row(
@@ -74,15 +109,18 @@ app.layout = html.Div([
                 dcc.Graph(
                 id='rating-ot',
                 figure=rating_ot
-                ), style=dict(width='100%')
+                ), style=dict(width='100%', backgroundColor='#FFF')
             )
         ),
         dbc.Row(
             dbc.Col(
-                html.Iframe(src=app.get_asset_url(lda_vis),style=dict(width="100%", height="900px", paddingLeft='5%', textAlign='center'))
+                html.Iframe(src=app.get_asset_url(lda_vis),style=dict(width="100%", height="900px", paddingLeft='10%', textAlign='center'))
             )
         )
-])
+    ],
+    fluid=True,
+    style=dict(padding=0)
+)
 
 if __name__ == '__main__':
     app.run_server(debug=True)
