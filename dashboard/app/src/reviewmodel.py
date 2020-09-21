@@ -1,14 +1,13 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import GridSearchCV
 from sklearn.decomposition import LatentDirichletAllocation
-import time
 
 class ReviewLDA():
 
     def __init__(self, n_components=5):
         self.lda = LatentDirichletAllocation(n_components=n_components)
 
-    def fit(self, X, validate=False, n_components=[3, 5, 10], learning_decay=[0.5, 0.7, 0.9]):
+    def fit(self, X, validate=False):
         """
         Fit list of tokens to TF-IDF vectorizer model to then fit LDA
         model. If 'validate' is set to true, fits GridSearchCV to find
@@ -24,16 +23,13 @@ class ReviewLDA():
 
         # Begin validation
         if validate:
-            start = time.time()
             search_params = {
-                'n_components': n_components,
-                'learning_decay': learning_decay
+                'n_components': [3, 5, 10],
+                'learning_decay': [0.5, 0.7, 0.9]
             }
-            self.model = GridSearchCV(self.lda, search_params, n_jobs=-1)
+            self.model = GridSearchCV(self.lda, search_params)
             self.model.fit(self.dtm)
             self.best_lda = self.model.best_estimator_
-            end = time.time()
-            print(end - start)
 
         # End validation
         else:
