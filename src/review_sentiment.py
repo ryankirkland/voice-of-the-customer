@@ -1,3 +1,5 @@
+
+from textblob import TextBlob
 """
 Processes the cleaned DataFrame of Amazon customer reviews
 using the TextBlob package to reclassify reviews as
