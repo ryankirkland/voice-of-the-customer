@@ -32,7 +32,7 @@ test_df = pd.DataFrame({
 # EXTERNAL RESOURCES
 external_stylesheets = [dbc.themes.YETI]
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=external_stylesheets)
 
 app.layout = dbc.Container([
         dbc.Navbar(
@@ -55,7 +55,6 @@ app.layout = dbc.Container([
         dbc.Jumbotron([
             dbc.Container([
                 dbc.Row([
-                    html.P(test_df.columns),
                     dbc.Col([
                         html.H1('Voice of the Customer', className='display-5'),
                         html.P(
@@ -127,8 +126,9 @@ def parse_contents(contents, filename, date):
     neg_lda.fit(neg_preprocessed)
     neg_vis = pyLDAvis.sklearn.prepare(neg_lda.best_lda, neg_lda.dtm, neg_lda.tfidf, n_jobs=1)
     neg_lda_vis = pyLDAvis.prepared_data_to_html(neg_vis)
-    print(neg_lda_vis)
-    # neg_lda_vis = 'neg.html'
+    # neg_html = open('assets/neg.html', 'w')
+    # neg_html.write(neg_lda_vis)
+    neg_lda_vis = 'neg.html'
 
 
     rating_hist = px.histogram(reviews_df, x="rating", nbins=5, title = 'Histogram of Ratings')
@@ -188,23 +188,17 @@ def parse_contents(contents, filename, date):
                 ), style=dict(width='100%', backgroundColor='#FFF')
             )
         ),
-        dbc.Row(
-            dbc.Col([
-                # html.Iframe(src=app.get_asset_url(neg_lda_vis),style=dict(width="100%", height="900px", paddingLeft='10%', textAlign='center'))
-                dash_dangerously_set_inner_html.DangerouslySetInnerHTML(
-                    neg_lda_vis
-                )
-            ])
-        ),
+        # dbc.Row(
+        #     dbc.Col([
+        #         html.Iframe(src=app.get_asset_url(neg_lda_vis))
+        #     ])
+        # ),
 
         html.Hr(),  # horizontal line
-
-        # For debugging, display the raw contents provided by the web browser
-        html.Div('Raw Content'),
-        html.Pre(contents[0:200] + '...', style={
-            'whiteSpace': 'pre-wrap',
-            'wordBreak': 'break-all'
-        })
+        html.Div([
+            html.Button('Submit', id='button'),
+            html.Div(id='output-container-button')
+        ])
     ])
 
 @app.callback(Output('output-data-upload', 'children'),
@@ -217,6 +211,11 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
             parse_contents(c, n, d) for c, n, d in
             zip(list_of_contents, list_of_names, list_of_dates)]
         return children
+
+@app.callback(Output('output-container-button', 'children'),
+            [Input('button', 'n_clicks')])
+def update_button(n_clicks):
+    return f'{n_clicks}'
 
 if __name__ == '__main__':
     app.run_server(debug=True)
