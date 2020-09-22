@@ -3,11 +3,13 @@ import dash_table
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
+import dash_dangerously_set_inner_html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 import plotly.express as px
 import plotly.graph_objects as go
 import plotly.figure_factory as ff
+import pyLDAvis.sklearn
 
 import pandas as pd
 import numpy as np
@@ -16,10 +18,16 @@ import datetime
 import io
 import time
 import src.helpers as h
+import src.preprocess as p
+from src.reviewmodel import ReviewLDA
 
 df = pd.read_csv('../../data/cleaned_reviews.csv')
 dr = pd.read_csv('../../data/date_range.csv')
 lda_vis = 'negative_rechargeble_bats_ldavis.html'
+
+test_df = pd.DataFrame({
+    'yeet': [1, 2, 3,]
+})
 
 # EXTERNAL RESOURCES
 external_stylesheets = [dbc.themes.YETI]
@@ -47,6 +55,7 @@ app.layout = dbc.Container([
         dbc.Jumbotron([
             dbc.Container([
                 dbc.Row([
+                    html.P(test_df.columns),
                     dbc.Col([
                         html.H1('Voice of the Customer', className='display-5'),
                         html.P(
@@ -113,6 +122,15 @@ def parse_contents(contents, filename, date):
     sma_df = h.get_moving_average(reviews_df)
     neg, pos = h.pos_neg_split(reviews_df)
 
+    neg_preprocessed = p.preprocess_corpus(neg['title_desc'])
+    neg_lda = ReviewLDA()
+    neg_lda.fit(neg_preprocessed)
+    neg_vis = pyLDAvis.sklearn.prepare(neg_lda.best_lda, neg_lda.dtm, neg_lda.tfidf, n_jobs=1)
+    neg_lda_vis = pyLDAvis.prepared_data_to_html(neg_vis)
+    print(neg_lda_vis)
+    # neg_lda_vis = 'neg.html'
+
+
     rating_hist = px.histogram(reviews_df, x="rating", nbins=5, title = 'Histogram of Ratings')
     rating_ot = px.line(sma_df, x=dr['dates'], y=dr['moving'], title='Simple Moving Average Rating')
     rating_ot.update_xaxes(
@@ -145,6 +163,8 @@ def parse_contents(contents, filename, date):
         html.H5(filename),
         html.H6(datetime.datetime.fromtimestamp(date)),
 
+        html.P(test_df.columns),
+
         dbc.Row([
             dbc.Col(
                 dcc.Graph(
@@ -169,9 +189,12 @@ def parse_contents(contents, filename, date):
             )
         ),
         dbc.Row(
-            dbc.Col(
-                html.Iframe(src=app.get_asset_url(lda_vis),style=dict(width="100%", height="900px", paddingLeft='10%', textAlign='center'))
-            )
+            dbc.Col([
+                # html.Iframe(src=app.get_asset_url(neg_lda_vis),style=dict(width="100%", height="900px", paddingLeft='10%', textAlign='center'))
+                dash_dangerously_set_inner_html.DangerouslySetInnerHTML(
+                    neg_lda_vis
+                )
+            ])
         ),
 
         html.Hr(),  # horizontal line

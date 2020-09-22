@@ -63,10 +63,13 @@ def preprocess_corpus(content, n_grams=2):
     -------
     A list of lists: each list contains a tokenized version of the original string
     '''
+
+    content_list = content.tolist()
+
     preprocessed = []
-    for i in range(len(content)):
+    for i in range(len(content_list)):
         print('removing punctuation')
-        step_1 = remove_punc(content[i].lower())
+        step_1 = remove_punc(content_list[i].lower())
         print(step_1)
         print('removing stop words')
         step_2 = rm_stop_words(step_1)

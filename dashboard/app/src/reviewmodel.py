@@ -2,10 +2,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import GridSearchCV
 from sklearn.decomposition import LatentDirichletAllocation
 
+
 class ReviewLDA():
 
     def __init__(self, n_components=5):
-        self.lda = LatentDirichletAllocation(n_components=n_components)
+        self.lda = LatentDirichletAllocation(n_components=n_components, n_jobs=1)
 
     def fit(self, X, validate=False):
         """
