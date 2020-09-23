@@ -137,8 +137,29 @@ def generate_eda_figs():
     reviews_df = pd.read_csv('assets/reviews.csv')
     sma_df = pd.read_csv('assets/sma.csv')
 
+    neg, pos = h.pos_neg_split(reviews_df)
+
+    # Negative Reviews LDA
+    neg_preprocessed = p.preprocess_corpus(neg['title_desc'])
+    neg_lda = ReviewLDA()
+    neg_lda.fit(neg_preprocessed)
+    neg_review_weights = neg_lda.transform(neg_lda.dtm)
+
+    neg_topics = h.display_topics(neg_lda, neg_lda.tfidf.get_feature_names(), 20)
+    neg_topics_df = pd.DataFrame(neg_topics)
+    neg_review_weights_df = pd.DataFrame(neg_review_weights).rename(columns={0: 'Topic 1', 1: 'Topic 2', 2: 'Topic 3'})
+
+    neg_topic_reviews = pd.merge(neg_review_weights_df, neg.reset_index(), left_index=True, right_index=True)
+    print(neg_topic_reviews)
+    neg_topic1_reviews = neg_topic_reviews.sort_values('Topic 1', ascending=False)[0:5][['Topic 1','asin','desc']]
+
+    # Positive Reviews LDA
+    pos_preprocessed = p.preprocess_corpus(pos['title_desc'])
+    pos_lda = ReviewLDA()
+    pos_lda.fit(pos_preprocessed)
+
     rating_hist = px.histogram(reviews_df, x="rating", nbins=5, title = 'Histogram of Ratings')
-    rating_ot = px.line(sma_df, x=dr['dates'], y=dr['moving'], title='Simple Moving Average Rating')
+    rating_ot = px.line(sma_df, x='date', y='moving', title='Simple Moving Average Rating')
     rating_ot.update_xaxes(
         rangeslider_visible=True,
         rangeselector=dict(
@@ -158,6 +179,67 @@ def generate_eda_figs():
                     y='Subjectivity', 
                     color = 'Analysis',
                     size='Subjectivity')
+
+    neg_topics_fig = go.Figure()
+    neg_topics_fig.add_trace(
+        go.Bar(x=list(neg_topics_df['Topic 1 words']),
+                y=list(neg_topics_df['Topic 1 weights']),
+                name="Topic 1"))
+
+    neg_topics_fig.add_trace(
+        go.Bar(x=list(neg_topics_df['Topic 2 words']),
+                y=list(neg_topics_df['Topic 2 weights']),
+                name="Topic 2"))
+
+    neg_topics_fig.add_trace(
+        go.Bar(x=list(neg_topics_df['Topic 3 words']),
+                y=list(neg_topics_df['Topic 3 weights']),
+                name="Topic 3"))
+
+    neg_topics_fig.update_layout(
+        updatemenus=[
+            dict(
+                active=3,
+                buttons=list([
+                    dict(label="Topic 1",
+                        method="update",
+                        args=[{"visible": [True, False, False]},
+                            {"title": "Topic 1"}]),
+                    dict(label="Topic 2",
+                        method="update",
+                        args=[{"visible": [False, True, False]},
+                            {"title": "Topic 2"}]),
+                    dict(label="Topic 3",
+                        method="update",
+                        args=[{"visible": [False, False, True]},
+                            {"title": "Topic 3"}]),
+                    dict(label="All Topics",
+                        method="update",
+                        args=[{"visible": [True, True, True]},
+                            {"title": "All Topics"}])
+                ]),
+            )
+        ])
+
+    neg_topics_table_1 = dash_table.DataTable(
+        id='neg-topic-1-reviews',
+        columns=[{"name": i, "id": i} for i in neg_topic1_reviews.columns],
+        data=neg_topic1_reviews.to_dict('records'),
+        style_cell={
+        'whiteSpace': 'normal',
+        'height': 'auto',
+        'width': '400px'
+        },
+        css=[{
+        'selector': '.dash-spreadsheet td div',
+        'rule': '''
+            line-height: 15px;
+            max-height: 30px; min-height: 30px; height: 30px;
+            display: block;
+            overflow-y: hidden;
+        '''
+        }],
+    )
 
     return html.Div([
         dbc.Row([
@@ -183,6 +265,21 @@ def generate_eda_figs():
                 ), style=dict(width='100%', backgroundColor='#FFF')
             )
         ),
+        dbc.Row(
+            dbc.Col(
+                dcc.Graph(
+                    id='neg-topics',
+                    figure=neg_topics_fig
+                ), style=dict(width='100%', backgroundColor='#FFF')
+            )
+        ),
+        dbc.Row(
+            dbc.Col(
+                children=neg_topics_table_1,
+                width={'size': 6, 'offset': 2},
+                
+            )
+        )
     ])
 
     # #add a vertical line at x=0 for Netural Reviews
@@ -191,11 +288,7 @@ def generate_eda_figs():
     #                             yref= 'paper', y0= 0, y1= 1, 
     #                             xref= 'x', x0= 0, x1= 0)])
     
-    # neg, pos = h.pos_neg_split(reviews_df)
 
-    # neg_preprocessed = p.preprocess_corpus(neg['title_desc'])
-    # neg_lda = ReviewLDA()
-    # neg_lda.fit(neg_preprocessed)
     # neg_vis = pyLDAvis.sklearn.prepare(neg_lda.best_lda, neg_lda.dtm, neg_lda.tfidf, n_jobs=1)
     # neg_lda_vis = pyLDAvis.prepared_data_to_html(neg_vis)
     # # neg_html = open('assets/neg.html', 'w')

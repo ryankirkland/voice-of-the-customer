@@ -5,8 +5,8 @@ import time
 
 class ReviewLDA():
 
-    def __init__(self, n_components=5):
-        self.lda = LatentDirichletAllocation(n_components=n_components)
+    def __init__(self, n_components=5, learning_decay=0.7):
+        self.lda = LatentDirichletAllocation(n_components=n_components, learning_decay=learning_decay)
 
     def fit(self, X, validate=False, n_components=[3, 5, 10], learning_decay=[0.5, 0.7, 0.9]):
         """
@@ -41,6 +41,13 @@ class ReviewLDA():
         
         self.perplexity = self.best_lda.perplexity(self.dtm)
         self.log_likelihood = self.best_lda.score(self.dtm)
+        self.components_ = self.best_lda.components_
+        self.cv_results = self.model.cv_results_
+        self.best_params = self.model.best_params_
+        self.best_score = self.model.best_score_
+
+        print(self.best_score)
+        print(self.best_params)
 
         return self.best_lda
 

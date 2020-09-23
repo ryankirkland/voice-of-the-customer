@@ -98,3 +98,21 @@ def pos_neg_split(df):
     neg = df[df['Analysis'] == 'Negative']
     pos = df[df['Analysis'] == 'Positive']
     return neg, pos
+
+def display_topics(model, feature_names, n_top_words):
+    '''
+    INPUTS:
+        model - the model we created
+        feature_names - tells us what word each column in the matric represents
+        n_top_words - number of top words to display
+
+    OUTPUTS:
+        a dataframe that contains the topics we created and the weights of each token
+    '''
+    topic_dict = {}
+    for topic_idx, topic in enumerate(model.components_):
+        topic_dict["Topic %d words" % (topic_idx+1)]= ['{}'.format(feature_names[i])
+                        for i in topic.argsort()[:-n_top_words - 1:-1]]
+        topic_dict["Topic %d weights" % (topic_idx+1)]= ['{:.1f}'.format(topic[i])
+                        for i in topic.argsort()[:-n_top_words - 1:-1]]
+    return pd.DataFrame(topic_dict)

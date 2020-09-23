@@ -5,10 +5,10 @@ from sklearn.decomposition import LatentDirichletAllocation
 
 class ReviewLDA():
 
-    def __init__(self, n_components=5):
-        self.lda = LatentDirichletAllocation(n_components=n_components, n_jobs=1)
+    def __init__(self, n_components=5, learning_decay=0.7):
+        self.lda = LatentDirichletAllocation(n_components=n_components, learning_decay=learning_decay)
 
-    def fit(self, X, validate=False):
+    def fit(self, X, validate=False, n_components=[3, 5, 10], learning_decay=[0.5, 0.7, 0.9]):
         """
         Fit list of tokens to TF-IDF vectorizer model to then fit LDA
         model. If 'validate' is set to true, fits GridSearchCV to find
@@ -25,12 +25,15 @@ class ReviewLDA():
         # Begin validation
         if validate:
             search_params = {
-                'n_components': [3, 5, 10],
-                'learning_decay': [0.5, 0.7, 0.9]
+                'n_components': n_components,
+                'learning_decay': learning_decay
             }
             self.model = GridSearchCV(self.lda, search_params)
             self.model.fit(self.dtm)
             self.best_lda = self.model.best_estimator_
+            self.cv_results = self.model.cv_results_
+            self.best_params = self.model.best_params_
+            self.best_score = self.model.best_score_
 
         # End validation
         else:
@@ -38,6 +41,7 @@ class ReviewLDA():
         
         self.perplexity = self.best_lda.perplexity(self.dtm)
         self.log_likelihood = self.best_lda.score(self.dtm)
+        self.components_ = self.best_lda.components_
 
         return self.best_lda
 
