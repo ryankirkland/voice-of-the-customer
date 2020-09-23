@@ -13,6 +13,7 @@ import pyLDAvis.sklearn
 
 import pandas as pd
 import numpy as np
+import json
 import base64
 import datetime
 import io
@@ -71,7 +72,7 @@ app.layout = dbc.Container([
                     id='upload-data',
                     children=html.Div([
                         'Drag and Drop or ',
-                        html.A('Select Files')
+                        html.A('Select Files to Get Started')
                     ]),
                     style={
                         'width': '100%',
@@ -85,14 +86,15 @@ app.layout = dbc.Container([
                     },
                     # Allow multiple files to be uploaded
                     multiple=True
-                )
+                ),
+                html.Div(id='output-data-upload')
             ],
             fluid=False
             )
         ],
         fluid=True
         ),
-        html.Div(id='output-data-upload'),
+        html.Div(id='output-container-button')
     ],
     fluid=True,
     style=dict(padding=0)
@@ -119,17 +121,21 @@ def parse_contents(contents, filename, date):
     reviews_df = h.cleaned_reviews_dataframe(df)
     reviews_df = h.get_sentiment(reviews_df)
     sma_df = h.get_moving_average(reviews_df)
-    neg, pos = h.pos_neg_split(reviews_df)
 
-    neg_preprocessed = p.preprocess_corpus(neg['title_desc'])
-    neg_lda = ReviewLDA()
-    neg_lda.fit(neg_preprocessed)
-    neg_vis = pyLDAvis.sklearn.prepare(neg_lda.best_lda, neg_lda.dtm, neg_lda.tfidf, n_jobs=1)
-    neg_lda_vis = pyLDAvis.prepared_data_to_html(neg_vis)
-    # neg_html = open('assets/neg.html', 'w')
-    # neg_html.write(neg_lda_vis)
-    neg_lda_vis = 'neg.html'
+    # reviews_df.to_csv('assets/reviews.csv')
+    # sma_df.to_csv('assets/sma.csv')
 
+    return html.Button('Get Sentiment', id='button')
+
+    # return html.Div([
+    #     html.Div(children=reviews_df.to_json(), id='reviews_df'),
+    #     html.Div(children=sma_df.to_json(), id='sma_df')
+    # ])
+
+def generate_eda_figs():
+
+    reviews_df = pd.read_csv('assets/reviews.csv')
+    sma_df = pd.read_csv('assets/sma.csv')
 
     rating_hist = px.histogram(reviews_df, x="rating", nbins=5, title = 'Histogram of Ratings')
     rating_ot = px.line(sma_df, x=dr['dates'], y=dr['moving'], title='Simple Moving Average Rating')
@@ -153,18 +159,7 @@ def parse_contents(contents, filename, date):
                     color = 'Analysis',
                     size='Subjectivity')
 
-    #add a vertical line at x=0 for Netural Reviews
-    sentiment.update_layout(title='Sentiment Analysis of Review Content',
-                    shapes=[dict(type= 'line',
-                                yref= 'paper', y0= 0, y1= 1, 
-                                xref= 'x', x0= 0, x1= 0)])
-
     return html.Div([
-        html.H5(filename),
-        html.H6(datetime.datetime.fromtimestamp(date)),
-
-        html.P(test_df.columns),
-
         dbc.Row([
             dbc.Col(
                 dcc.Graph(
@@ -188,18 +183,37 @@ def parse_contents(contents, filename, date):
                 ), style=dict(width='100%', backgroundColor='#FFF')
             )
         ),
-        # dbc.Row(
-        #     dbc.Col([
-        #         html.Iframe(src=app.get_asset_url(neg_lda_vis))
-        #     ])
-        # ),
-
-        html.Hr(),  # horizontal line
-        html.Div([
-            html.Button('Submit', id='button'),
-            html.Div(id='output-container-button')
-        ])
     ])
+
+    # #add a vertical line at x=0 for Netural Reviews
+    # sentiment.update_layout(title='Sentiment Analysis of Review Content',
+    #                 shapes=[dict(type= 'line',
+    #                             yref= 'paper', y0= 0, y1= 1, 
+    #                             xref= 'x', x0= 0, x1= 0)])
+    
+    # neg, pos = h.pos_neg_split(reviews_df)
+
+    # neg_preprocessed = p.preprocess_corpus(neg['title_desc'])
+    # neg_lda = ReviewLDA()
+    # neg_lda.fit(neg_preprocessed)
+    # neg_vis = pyLDAvis.sklearn.prepare(neg_lda.best_lda, neg_lda.dtm, neg_lda.tfidf, n_jobs=1)
+    # neg_lda_vis = pyLDAvis.prepared_data_to_html(neg_vis)
+    # # neg_html = open('assets/neg.html', 'w')
+    # # neg_html.write(neg_lda_vis)
+    # neg_lda_vis = 'neg.html'
+
+
+
+
+
+    #     # dbc.Row(
+    #     #     dbc.Col([
+    #     #         html.Iframe(src=app.get_asset_url(neg_lda_vis))
+    #     #     ])
+    #     # ),
+
+    #     html.Hr(),  # horizontal line
+    # ])
 
 @app.callback(Output('output-data-upload', 'children'),
               [Input('upload-data', 'contents')],
@@ -214,8 +228,11 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
 
 @app.callback(Output('output-container-button', 'children'),
             [Input('button', 'n_clicks')])
+            #  Input('reviews_df', 'children'),
+            #  Input('sma_df', 'children')])
 def update_button(n_clicks):
-    return f'{n_clicks}'
+    if n_clicks:
+        return generate_eda_figs()
 
 if __name__ == '__main__':
     app.run_server(debug=True)
