@@ -10,8 +10,10 @@ AWS EC2, BeautifulSoup, Requests, Pandas, NumPy, Sci-Kit Learn, Matplotlib, and 
 
 ## Data
 
-
+Reviews scraped from Amazon. The focus of the presentation was on the top products for the term "portable air conditioner".
 
 ## Model
+
+GridSearchCV LDA on TF-IDF vectorized corpus of reviews.
 
 ## Results
