@@ -122,20 +122,16 @@ def parse_contents(contents, filename, date):
     reviews_df = h.get_sentiment(reviews_df)
     sma_df = h.get_moving_average(reviews_df)
 
-    # reviews_df.to_csv('assets/reviews.csv')
-    # sma_df.to_csv('assets/sma.csv')
+    return html.Div([
+        html.Div(children=reviews_df.to_json(), id='reviews_df', style={'display': 'none'}),
+        html.Div(children=sma_df.to_json(), id='sma_df', style={'display': 'none'}),
+        html.Button('Get Sentiment', id='button')
+    ])
 
-    return html.Button('Get Sentiment', id='button')
+def generate_eda_figs(reviews_df, sma_df):
 
-    # return html.Div([
-    #     html.Div(children=reviews_df.to_json(), id='reviews_df'),
-    #     html.Div(children=sma_df.to_json(), id='sma_df')
-    # ])
-
-def generate_eda_figs():
-
-    reviews_df = pd.read_csv('assets/reviews.csv')
-    sma_df = pd.read_csv('assets/sma.csv')
+    reviews_df = pd.read_json(reviews_df)
+    sma_df = pd.read_json(sma_df)
 
     neg, pos = h.pos_neg_split(reviews_df)
 
@@ -320,12 +316,12 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
         return children
 
 @app.callback(Output('output-container-button', 'children'),
-            [Input('button', 'n_clicks')])
-            #  Input('reviews_df', 'children'),
-            #  Input('sma_df', 'children')])
-def update_button(n_clicks):
+            [Input('button', 'n_clicks'),
+             Input('reviews_df', 'children'),
+             Input('sma_df', 'children')])
+def update_button(n_clicks, reviews_df, sma_df):
     if n_clicks:
-        return generate_eda_figs()
+        return generate_eda_figs(reviews_df, sma_df)
 
 if __name__ == '__main__':
     app.run_server(debug=True)
