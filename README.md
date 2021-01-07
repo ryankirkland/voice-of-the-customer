@@ -6,7 +6,7 @@ As an Amazon Seller, or really anyone who sells product, it's important to alway
 
 ### Technologies
 
-AWS EC2, BeautifulSoup, Requests, Pandas, NumPy, Sci-Kit Learn, Matplotlib, and Plotly Dash.
+<img src='https://github.com/ryankirkland/voice-of-the-customer/blob/master/img/flow.png'>
 
 ## Data
 
