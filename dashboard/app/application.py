@@ -18,22 +18,16 @@ import base64
 import datetime
 import io
 import time
-import src.helpers as h
-import src.preprocess as p
-from src.reviewmodel import ReviewLDA
-
-df = pd.read_csv('../../data/cleaned_reviews.csv')
-dr = pd.read_csv('../../data/date_range.csv')
-lda_vis = 'negative_rechargeble_bats_ldavis.html'
-
-test_df = pd.DataFrame({
-    'yeet': [1, 2, 3,]
-})
+import helpers as h
+import preprocess as p
+from reviewmodel import ReviewLDA
 
 # EXTERNAL RESOURCES
 external_stylesheets = [dbc.themes.YETI]
 
 app = dash.Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=external_stylesheets)
+
+application = app.server
 
 app.layout = dbc.Container([
         dbc.Navbar(
@@ -277,32 +271,6 @@ def generate_eda_figs(reviews_df, sma_df):
             )
         )
     ])
-
-    # #add a vertical line at x=0 for Netural Reviews
-    # sentiment.update_layout(title='Sentiment Analysis of Review Content',
-    #                 shapes=[dict(type= 'line',
-    #                             yref= 'paper', y0= 0, y1= 1, 
-    #                             xref= 'x', x0= 0, x1= 0)])
-    
-
-    # neg_vis = pyLDAvis.sklearn.prepare(neg_lda.best_lda, neg_lda.dtm, neg_lda.tfidf, n_jobs=1)
-    # neg_lda_vis = pyLDAvis.prepared_data_to_html(neg_vis)
-    # # neg_html = open('assets/neg.html', 'w')
-    # # neg_html.write(neg_lda_vis)
-    # neg_lda_vis = 'neg.html'
-
-
-
-
-
-    #     # dbc.Row(
-    #     #     dbc.Col([
-    #     #         html.Iframe(src=app.get_asset_url(neg_lda_vis))
-    #     #     ])
-    #     # ),
-
-    #     html.Hr(),  # horizontal line
-    # ])
 
 @app.callback(Output('output-data-upload', 'children'),
               [Input('upload-data', 'contents')],

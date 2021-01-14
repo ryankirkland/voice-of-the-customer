@@ -9,6 +9,7 @@ from nltk.stem.wordnet import WordNetLemmatizer
 
 wordnet = WordNetLemmatizer()
 nltk.download('stopwords')
+nltk.download('punkt')
 
 def remove_punc(word:str) -> str:
     '''
