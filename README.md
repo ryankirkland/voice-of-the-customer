@@ -46,6 +46,6 @@ This helps to provide further context to what common themes occur within positiv
 
 However, what makes this even more useful in practical application is to look at the most heavily weighted reviews within each topic. These have the highest probability of appearing together and within the topic based on the content found within. This becomes a truly time saving activity because we now do not have to sift through hundreds or thousands of reviews, and we still get the richness of reading the reviews directly from the customer. Take that, useless word clouds.
 
-After completing this analysis, the required visualizations and data transformations were incorporated into an app powered by Plotly Dash. In its current state, it runs locally for use within personal projects, though a public-facing version will be launched in the near future.
+After completing this analysis, the required visualizations and data transformations were incorporated into an app powered by Plotly Dash. In its current state, it runs locally for use within personal projects. A public-facing version has been deployed with AWS Elastic Beanstalk, however the EC2 Instance has been stopped and can be restarted if interest is expressed for viewing.
 
 <img src='https://github.com/ryankirkland/voice-of-the-customer/blob/master/img/app.png'>
